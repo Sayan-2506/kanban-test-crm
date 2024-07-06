@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useIsLoadingStore, useAuthStore } from "@/stores/auth.store";
+import { v4 as uuidv } from "uuid";
+
 useHead({
   title: "Login | CRM System",
 });
@@ -7,9 +10,40 @@ const nameRef = ref("");
 const emailRef = ref("");
 const passwordRef = ref("");
 
-watch(emailRef, () => {
-  console.log(emailRef.value);
-});
+const isLoadingStore = useIsLoadingStore();
+
+const router = useRouter();
+const authStore = useAuthStore();
+
+const login = async () => {
+  isLoadingStore.set(true);
+  await account.createEmailPasswordSession(emailRef.value, passwordRef.value);
+  const response = await account.get();
+  if (response) {
+    authStore.set({
+      name: response.name,
+      email: response.email,
+      status: response.status,
+    });
+  }
+
+  nameRef.value = "";
+  emailRef.value = "";
+  passwordRef.value = "";
+
+  await router.push("/");
+  isLoadingStore.set(false);
+};
+
+const register = async () => {
+  await account.create(
+    uuidv(),
+    emailRef.value,
+    passwordRef.value,
+    nameRef.value
+  );
+  await login();
+};
 </script>
 
 <template>
@@ -37,8 +71,8 @@ watch(emailRef, () => {
         />
 
         <div class="flex items-center justify-center gap-5">
-          <UiButton type="button">Login</UiButton>
-          <UiButton type="button">Register</UiButton>
+          <UiButton type="button" @click="login">Login</UiButton>
+          <UiButton type="button" @click="register">Register</UiButton>
         </div>
       </form>
     </div>
