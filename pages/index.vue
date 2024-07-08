@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { ICard, IColumn } from "~/components/kanban/kanban.types";
+import { useKanbanQuery } from "~/components/kanban/useKanbanQuery";
 
 useHead({
   title: "Home | CRM System",
@@ -7,6 +8,8 @@ useHead({
 
 const dragCardRef = ref<ICard | null>(null);
 const sourceColumnRef = ref<IColumn | null>(null);
+
+useKanbanQuery();
 </script>
 
 <template>
