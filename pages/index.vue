@@ -4,6 +4,8 @@ import { COLLECTION_DEALS, DB_ID } from "~/app.constants";
 import type { ICard, IColumn } from "~/components/kanban/kanban.types";
 import { useKanbanQuery } from "~/components/kanban/useKanbanQuery";
 import { EnumStatus } from "~/types/deals.types";
+import { generateColumnStyle } from "@/components/kanban/generate-gradient";
+import { useDealSlideStore } from "~/stores/deal-slide.store";
 
 useHead({
   title: "Home | CRM System",
@@ -11,8 +13,8 @@ useHead({
 
 const dragCardRef = ref<ICard | null>(null);
 const sourceColumnRef = ref<IColumn | null>(null);
-
 const { data, isLoading, refetch } = useKanbanQuery();
+const store = useDealSlideStore();
 
 type TypeMutationVariables = {
   docId: string;
@@ -22,7 +24,6 @@ type TypeMutationVariables = {
 const { mutate } = useMutation({
   mutationKey: ["move card"],
   mutationFn: async ({ docId, status }: TypeMutationVariables) => {
-    console.log({ docId, status });
     return await DB.updateDocument(DB_ID, COLLECTION_DEALS, docId, {
       status,
     });
@@ -64,8 +65,12 @@ function handleDrop(targetColumn: IColumn) {
           :key="column.id"
           @dragover="handleDragOver"
           @drop="() => handleDrop(column)"
+          class="min-h-screen"
         >
-          <div class="rounded bg-slate-700 py-1 px-5 mb-2 text-center">
+          <div
+            class="rounded bg-slate-700 py-1 px-5 mb-2 text-center"
+            :style="generateColumnStyle(index, data?.length)"
+          >
             {{ column.name }}
           </div>
           <KanbanCreateDeal :refetch="refetch" :status="column.id" />
@@ -77,7 +82,7 @@ function handleDrop(targetColumn: IColumn) {
             draggable="true"
             @dragstart="() => handleDragStart(card, column)"
           >
-            <UiCardHeader role="button">
+            <UiCardHeader role="button" @click="store.set(card)">
               <UiCardTitle>{{ card.name }}</UiCardTitle>
               <UiCardDescription class="mt-2 block">{{
                 convertCurrency(card.price)
@@ -92,6 +97,7 @@ function handleDrop(targetColumn: IColumn) {
           </UiCard>
         </div>
       </div>
+      <KanbanSlideover />
     </div>
   </div>
 </template>
